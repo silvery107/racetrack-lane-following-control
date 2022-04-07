@@ -2,7 +2,7 @@
 Autonomous driving on Turtlebot3 with bird's-eye-view and ArUco pose estimation.
 
 
-<img src="images/demo.gif" width="500">
+<img src="images/demo.gif" width="700">
 
 ## Quick Start
 
