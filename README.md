@@ -1,7 +1,8 @@
 # Racetrack Lane Following Control
 Autonomous driving on Turtlebot3 with bird's-eye-view and ArUco pose estimation.
 
-![image](images/demo.gif)
+
+<img src="images/demo.gif" width="500">
 
 ## Quick Start
 
