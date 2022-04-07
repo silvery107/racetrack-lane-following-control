@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from time import time
 import rospy
 import cv2
 import cv_bridge
@@ -22,7 +23,7 @@ H /= H[2,2]
 print(H)
 
 pid = PIDController(2.5, 0, 0.0) # 2.5, 0, 0.0
-controller = NonholomonicController(0.031, 2.5, 0.5) # 0.031, 2.5, 0.5
+controller = NonholomonicController(0.03, 2.5, 0.5) # 0.031, 2.5, 0.5
 
 DTYPE = np.float32
 kernel = cv2.getGaussianKernel(5, 2)
@@ -74,6 +75,8 @@ class Follower:
 
         self.twist = Twist()
 
+        self.timer = time()
+
     def image_callback(self, msg):
 
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -106,7 +109,7 @@ class Follower:
         mask1[:, 0:w/6] = 0
         mask2[:, 5*w/6:] = 0
 
-        mask_add = mask1 + mask2
+        # mask_add = mask1 + mask2
         # cv2.imshow("masks", mask_add)
 
         M1 = cv2.moments(mask1)
@@ -141,27 +144,27 @@ class Follower:
             dy = filter_y.calculate_average(w/2 - fpt_x )
 
             v, omega = controller.apply(dx, dy, theta)
+            v = v # 0.45 + pid.apply(-curvature)
 
             print("dx:", dx)
             print("dy:", dy)
             print("theta:", rad2deg(theta))
             print("omega:", omega)
-            print("veloc:", v + pid.apply(-curvature))
+            print("veloc:", v)
             # print("curvature: %+5.4f"%curvature)
-            # print()
 
             cv2.line(img_bird_view, (w/2-dy*5, h), (w/2-dy*5, h-int(dx*5)), (0, 0, 255), 2)
             cv2.line(img_bird_view, (w/2, h-2), (w/2-dy*5, h-2), (0, 0, 255), 2)
-            
-            # print("pid: %+.3f"%pid.apply(curvature))
-            self.twist.linear.x = v + pid.apply(-curvature)
-            self.twist.angular.z = omega#(err*90.0/160)/15
+
+            self.twist.linear.x = v 
+            self.twist.angular.z = omega #(err*90.0/160)/15
             self.cmd_vel_pub.publish(self.twist)
             
         
         img_pair = np.concatenate((image, img_bird_view), axis=1)
         # cv2.imshow("image", img_pair)
         # cv2.waitKey(1)
+        print(time()-self.timer)
 
 
 rospy.init_node('lane_follower')
