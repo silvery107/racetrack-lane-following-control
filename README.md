@@ -1,16 +1,16 @@
 # Racetrack Lane Following Control
 Autonomous driving on Turtlebot3 with bird's-eye-view and ArUco pose estimation.
 
-**Racing Demo**
+#### Racing Demo
 
 <img src="images/demo.gif" width="700">
 
 
-**ArUco Marker as the Stop Sign**
+#### ArUco Marker as the Stop Sign
 
 <img src="images/traffic_parking.png" width="200">
 
-**Controllers**
+#### Controllers
 
 A *PID controller* and a *nonholomonic mobile feedback controller* are implemented in the `controllers.py`, and a *Neumaier's moving window filter* is implemented in the `moving_window_filter.py`. 
 
