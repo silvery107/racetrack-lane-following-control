@@ -57,3 +57,7 @@ rosrun racetrack_lane_following lane_following_part2.py
 rosrun racetrack_lane_following lane_following_part3.py
 ```
 
+## Compatibility
+
+- ROS Melodic / Noetic
+- Python 2 / 3
