@@ -39,7 +39,7 @@ A *PID controller* and a *nonholomonic mobile feedback controller* are implement
     chmod +x lane_following_part3.py
     ```
 
-## Part I: Driving in the racetrack
+## Part I: Driving in the Racetrack
 
 ```
 rosrun racetrack_lane_following lane_following_part1.py
