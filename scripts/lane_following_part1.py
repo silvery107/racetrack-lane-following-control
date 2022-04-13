@@ -37,7 +37,7 @@ class Follower:
         mask2 = cv2.inRange(hsv, lower_white, upper_white)
 
         h, w, d = image.shape
-        search_top = 2*h/3
+        search_top = int(2*h/3)
         mask1[0:search_top, 0:w] = 0
         mask2[0:search_top, 0:w] = 0
 
@@ -63,8 +63,8 @@ class Follower:
                 cx2 = int(M2['m10']/M2['m00'])
                 cy2 = int(M2['m01']/M2['m00'])
 
-            fpt_x = (cx1 + cx2)/2
-            fpt_y = (cy1 + cy2)/2 + 2*h/3
+            fpt_x = int((cx1 + cx2)/2)
+            fpt_y = int((cy1 + cy2)/2 + 2*h/3)
 
             cv2.circle(image, (cx1, cy1), 10, (0, 255, 255), -1)
             cv2.circle(image, (cx2, cy2), 10, (255, 255, 255), -1)

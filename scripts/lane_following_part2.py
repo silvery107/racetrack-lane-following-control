@@ -103,11 +103,11 @@ class Follower:
         curvature = (left_lane_param["curvature"]+right_lane_param["curvature"])/2
 
         h, w, d = image.shape
-        search_top = 1*h/3
+        search_top = int(1*h/3)
         mask1[0:search_top, 0:w] = 0
         mask2[0:search_top, 0:w] = 0
-        mask1[:, 0:w/6] = 0
-        mask2[:, 5*w/6:] = 0
+        mask1[:, 0:int(w/6)] = 0
+        mask2[:, 5*int(w/6):] = 0
 
         # mask_add = mask1 + mask2
         # cv2.imshow("masks", mask_add)
@@ -129,8 +129,8 @@ class Follower:
                 cx2 = int(M2['m10']/M2['m00'])
                 cy2 = int(M2['m01']/M2['m00'])
 
-            fpt_x = (cx1 + cx2)/2
-            fpt_y = (cy1 + cy2)/2
+            fpt_x = int((cx1 + cx2)/2)
+            fpt_y = int((cy1 + cy2)/2)
 
             cv2.circle(img_bird_view, (cx1, cy1), 10, (0, 255, 255), -1)
             cv2.circle(img_bird_view, (cx2, cy2), 10, (255, 255, 255), -1)
@@ -153,8 +153,8 @@ class Follower:
             print("veloc:", v)
             # print("curvature: %+5.4f"%curvature)
 
-            cv2.line(img_bird_view, (w/2-dy*5, h), (w/2-dy*5, h-int(dx*5)), (0, 0, 255), 2)
-            cv2.line(img_bird_view, (w/2, h-2), (w/2-dy*5, h-2), (0, 0, 255), 2)
+            cv2.line(img_bird_view, (int(w/2-dy*5), h), (int(w/2-dy*5), h-int(dx*5)), (0, 0, 255), 2)
+            cv2.line(img_bird_view, (int(w/2), h-2), (int(w/2-dy*5), h-2), (0, 0, 255), 2)
 
             self.twist.linear.x = v 
             self.twist.angular.z = omega #(err*90.0/160)/15
