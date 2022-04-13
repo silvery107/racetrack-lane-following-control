@@ -24,14 +24,14 @@ Notes: a *PID controller* and a *nonholomonic mobile feedback controller* are im
 
 2. Export models and launch the racetrack in gazebo
     ```   
-    cd src/racetrack-lane-following-control/
-    export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:./models
+    export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/racetrack-lane-following-control/models
     roslaunch racetrack_lane_following race_track.launch
     ```
 
 3. Add the execute permission for python nodes in the `scripts` folder
 
     ```
+    cd src/racetrack-lane-following-control/scripts
     chmod +x lane_following_part1.py
     chmod +x lane_following_part2.py
     chmod +x lane_following_part3.py
