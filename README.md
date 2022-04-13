@@ -10,7 +10,9 @@ Autonomous driving on Turtlebot3 with bird's-eye-view and ArUco pose estimation.
 
 <img src="images/traffic_parking.png" width="200">
 
-Notes: a *PID controller* and a *nonholomonic mobile feedback controller* are implemented in the `controllers.py`, and a *Neumaier's moving window filter* is implemented in the `moving_window_filter.py`. 
+**Controllers**
+
+A *PID controller* and a *nonholomonic mobile feedback controller* are implemented in the `controllers.py`, and a *Neumaier's moving window filter* is implemented in the `moving_window_filter.py`. 
 
 ## Quick Start
 
