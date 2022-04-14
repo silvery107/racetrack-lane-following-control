@@ -124,39 +124,40 @@ class Follower:
 
         if len(corners) > 0:
             _, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, 0.1, K, distCoeffs)
+            cv2.aruco.drawDetectedMarkers(image, corners, ids)
 
             if tvecs.squeeze()[-1] < 1.5 and not self.stop_flag and not self.stop_once:
                 self.stop_flag = True
                 self.timer = time()
             
-            # Flatten the ArUco IDs list
-            ids = ids.flatten()
+            # # Flatten the ArUco IDs list
+            # ids = ids.flatten()
             
-            # Loop over the detected ArUco corners
-            for (marker_corner, marker_id) in zip(corners, ids):
+            # # Loop over the detected ArUco corners
+            # for (marker_corner, marker_id) in zip(corners, ids):
             
-                # Extract the marker corners
-                corners = marker_corner.reshape((4, 2))
-                (top_left, top_right, bottom_right, bottom_left) = corners
+            #     # Extract the marker corners
+            #     corners = marker_corner.reshape((4, 2))
+            #     (top_left, top_right, bottom_right, bottom_left) = corners
                 
-                # Convert the (x,y) coordinate pairs to integers
-                top_right = (int(top_right[0]), int(top_right[1]))
-                bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
-                bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
-                top_left = (int(top_left[0]), int(top_left[1]))
+            #     # Convert the (x,y) coordinate pairs to integers
+            #     top_right = (int(top_right[0]), int(top_right[1]))
+            #     bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+            #     bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
+            #     top_left = (int(top_left[0]), int(top_left[1]))
                 
-                # Draw the bounding box of the ArUco detection
-                cv2.line(image, top_left, top_right, (0, 255, 0), 2)
-                cv2.line(image, top_right, bottom_right, (0, 255, 0), 2)
-                cv2.line(image, bottom_right, bottom_left, (0, 255, 0), 2)
-                cv2.line(image, bottom_left, top_left, (0, 255, 0), 2)
+            #     # Draw the bounding box of the ArUco detection
+            #     cv2.line(image, top_left, top_right, (0, 255, 0), 2)
+            #     cv2.line(image, top_right, bottom_right, (0, 255, 0), 2)
+            #     cv2.line(image, bottom_right, bottom_left, (0, 255, 0), 2)
+            #     cv2.line(image, bottom_left, top_left, (0, 255, 0), 2)
                 
-                # Draw the ArUco marker ID on the video frame
-                # The ID is always located at the top_left of the ArUco marker
-                cv2.putText(image, str(marker_id), 
-                (top_left[0], top_left[1] - 15),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (0, 255, 0), 2)
+            #     # Draw the ArUco marker ID on the video frame
+            #     # The ID is always located at the top_left of the ArUco marker
+            #     cv2.putText(image, str(marker_id), 
+            #     (top_left[0], top_left[1] - 15),
+            #     cv2.FONT_HERSHEY_SIMPLEX,
+            #     0.5, (0, 255, 0), 2)
 
         M1 = cv2.moments(mask1)
         M2 = cv2.moments(mask2)

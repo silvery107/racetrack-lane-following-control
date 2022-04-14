@@ -30,10 +30,10 @@ A *PID controller* and a *nonholomonic mobile feedback controller* are implement
     roslaunch racetrack_lane_following race_track.launch
     ```
 
-3. Add the execute permission for python nodes in the `scripts` folder
+3. Add the execute permission for python nodes in the `src` folder
 
     ```
-    cd src/racetrack-lane-following-control/scripts
+    cd src/racetrack-lane-following-control/src
     chmod +x lane_following_part1.py
     chmod +x lane_following_part2.py
     chmod +x lane_following_part3.py

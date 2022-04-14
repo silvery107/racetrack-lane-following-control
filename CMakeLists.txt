@@ -158,9 +158,9 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/lane_following_part1.py
-  scripts/lane_following_part2.py
-  scripts/lane_following_part3.py
+  src/lane_following_part1.py
+  src/lane_following_part2.py
+  src/lane_following_part3.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
