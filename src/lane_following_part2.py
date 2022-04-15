@@ -162,8 +162,8 @@ class Follower:
             
         
         img_pair = np.concatenate((image, img_bird_view), axis=1)
-        # cv2.imshow("image", img_pair)
-        # cv2.waitKey(1)
+        cv2.imshow("image", img_pair)
+        cv2.waitKey(1)
         print(time()-self.timer)
 
 
