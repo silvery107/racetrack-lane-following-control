@@ -1,18 +1,27 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from time import time
+
 import rospy
 import cv2
 import cv_bridge
 import numpy as np
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 from controllers import PIDController, NonholomonicController
 from moving_window_filter import MovingWindowFilter
 import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 
-K = np.array([265, 0, 160, 0, 265, 120, 0, 0, 1]).reshape((3,3))
+# Constant vals
+DTYPE = np.float32
+STOP_DISTANCE = 1.3
+STOP_TIME = 10
+kernel = cv2.getGaussianKernel(5, 2)
+rot_90 = np.array([0,1,-1,0], dtype=DTYPE).reshape((2,2))
+
+# Camera params and Homography
+distCoeffs = np.zeros(5, dtype=DTYPE)
+K = np.array([265, 0, 160, 0, 265, 120, 0, 0, 1]).reshape((3,3)) # the HFOV may be wrong
 R = np.array([1, 0, 0, 0, 0, -1, 0, -1, 0]).reshape((3,3))
 t = np.array([0, 0.6, 0.7]).reshape((3,1))
 n = np.array([0, -1, 0]).reshape((3,1))
@@ -22,21 +31,17 @@ H /= H[2,2]
 # H = np.array([-0.434, -1.33, 229, 0.0, -2.88, 462, 0.0, -0.00833, 1.0]).reshape((3,3))
 print(H)
 
-
-# pid = PIDController(2.5, 0, 0.0) # 2.5, 0, 0.0
+# Controllers and filters
+pid = PIDController(2.5, 0, 0.0) # 2.5, 0, 0.0
 controller = NonholomonicController(0.029, 2.5, 0.5) # 0.031, 2.5, 0.5
-
-DTYPE = np.float32
-distCoeffs = np.zeros(5, dtype=DTYPE)
-kernel = cv2.getGaussianKernel(5, 2)
-rot_90 = np.array([0,1,-1,0], dtype=DTYPE).reshape((2,2))
 filter_x = MovingWindowFilter(1, dim=1)
 filter_y = MovingWindowFilter(1, dim=1)
 filter_t = MovingWindowFilter(2, dim=1)
 
+# ArUco stuff
 ARUCO_TAG = cv2.aruco.DICT_6X6_50
-this_aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_TAG)
-this_aruco_parameters = cv2.aruco.DetectorParameters_create()
+aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_TAG)
+aruco_parameters = cv2.aruco.DetectorParameters_create()
 
 def rad2deg(rad):
     return rad/np.pi*180
@@ -73,21 +78,41 @@ class Follower:
 
         self.bridge = cv_bridge.CvBridge()
 
-        self.image_sub = rospy.Subscriber('camera/image',
-                                          Image, self.image_callback)
+        self.image_sub = rospy.Subscriber('camera/image', Image, self.image_callback)
 
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel',
-                                           Twist, queue_size=10)
+        self.odom_sub = rospy.Subscriber('odom', Odometry, self.odom_callback)
+
+        self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 
         self.twist = Twist()
 
         self.stop_flag = False
         self.stop_once = False
         self.timer = 0.0
-
+        self.positions = np.zeros(3, dtype=DTYPE)
+        self.stop_pos = None
+    
+    def odom_callback(self, msg):
+        self.positions[0] = msg.pose.pose.position.x
+        self.positions[1] = msg.pose.pose.position.y
+        self.positions[2] = msg.pose.pose.position.z
+        
     def image_callback(self, msg):
 
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        
+        corners, ids, _ = cv2.aruco.detectMarkers(
+            image, aruco_dictionary, parameters=aruco_parameters)
+
+        if len(corners) > 0:
+            cv2.aruco.drawDetectedMarkers(image, corners, ids)
+            _, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, 0.1, K, distCoeffs)
+
+            if np.linalg.norm(tvecs.squeeze()) < STOP_DISTANCE and not self.stop_flag and not self.stop_once:
+                self.stop_flag = True
+                print("Stop Flag Triggered")
+                self.timer = rospy.get_time()
+            
 
         img_bird_view = cv2.warpPerspective(image, H, (image.shape[1], image.shape[0]))
         # cv2.imshow("BEV", img_bird_view)
@@ -119,16 +144,6 @@ class Follower:
 
         mask_add = mask1 + mask2
         # cv2.imshow("masks", mask_add)
-        (corners, ids, _) = cv2.aruco.detectMarkers(
-            image, this_aruco_dictionary, parameters=this_aruco_parameters)
-
-        if len(corners) > 0:
-            cv2.aruco.drawDetectedMarkers(image, corners, ids)
-            _, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, 0.1, K, distCoeffs)
-
-            if tvecs.squeeze()[-1] < 1.5 and not self.stop_flag and not self.stop_once:
-                self.stop_flag = True
-                self.timer = time()
 
         M1 = cv2.moments(mask1)
         M2 = cv2.moments(mask2)
@@ -163,13 +178,12 @@ class Follower:
 
             v, omega = controller.apply(dx, dy, theta)
 
-            print("dx:", dx)
-            print("dy:", dy)
-            print("theta:", rad2deg(theta))
-            print("omega:", omega)
-            print("veloc:", v)
+            # print("dx:", dx)
+            # print("dy:", dy)
+            # print("theta:", rad2deg(theta))
+            # print("omega:", omega)
+            # print("veloc:", v)
             # print("curvature: %+5.4f"%curvature)
-            # print()
 
             cv2.line(img_bird_view, (int(w/2-dy*5), h), (int(w/2-dy*5), h-int(dx*5)), (0, 0, 255), 2)
             cv2.line(img_bird_view, (int(w/2), h-2), (int(w/2-dy*5), h-2), (0, 0, 255), 2)
@@ -177,11 +191,19 @@ class Follower:
             if self.stop_flag:
                 v = 0.0
                 # omega = 0.0
-                print("stop time: %.2f"%(time()-self.timer))
-                if time()-self.timer>10:
+                print("stop time: %.2f"%(rospy.get_time()-self.timer))
+                if rospy.get_time()-self.timer>=STOP_TIME:
                     self.stop_flag = False
                     self.stop_once = True
+                    self.stop_pos = self.positions.copy()
             
+            if self.stop_once:
+                distance = np.linalg.norm((self.positions-self.stop_pos))
+                # print(distance)
+                if distance > STOP_DISTANCE/10:
+                    self.stop_once = False
+                    print("Refresh Stop State")
+
             # print("pid: %+.3f"%pid.apply(curvature))
             self.twist.linear.x = v
             self.twist.angular.z = omega#(err*90.0/160)/15
